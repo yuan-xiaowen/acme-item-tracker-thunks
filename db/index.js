@@ -6,6 +6,10 @@ const { STRING, INTEGER } = Sequelize;
 const User = conn.define('user', {
   name: {
     type: STRING 
+  },
+  ranking:{
+    type:INTEGER,
+    defaultValue:5
   }
 });
 
@@ -20,11 +24,23 @@ const Thing = conn.define('thing', {
 });
 
 Thing.belongsTo(User);
+
 Thing.addHook('beforeValidate', (thing) => {
   if(!thing.userId){
     thing.userId = null;
   }
 });
+
+Thing.addHook('beforeUpdate', async(thing) => {
+  const id = thing.userId
+  const content = await Thing.findAll({where:{userId:id}})   
+  console.log('*******',content.length)
+  if (content.length===3){
+    throw new Error("You can't assign this user!")
+  }
+  return
+}
+);
 
 module.exports = {
   conn,
